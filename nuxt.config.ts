@@ -21,10 +21,17 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#0f172a' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
-        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' }
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        { name: 'apple-mobile-web-app-title', content: 'StudentPortal' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'msapplication-TileColor', content: '#0f172a' }
       ],
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/pwa-192x192.png' },
+        { rel: 'apple-touch-icon', sizes: '152x152', href: '/pwa-192x192.png' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/pwa-192x192.png' },
+        { rel: 'apple-touch-icon', sizes: '167x167', href: '/pwa-192x192.png' }
       ]
     }
   },

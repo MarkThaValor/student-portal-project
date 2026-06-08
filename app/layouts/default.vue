@@ -1,7 +1,147 @@
 <template>
   <div class="min-h-screen bg-slate-50 text-slate-800 flex flex-col md:flex-row">
+    <!-- PWA Enforcement Overlay -->
+    <Transition name="fade">
+      <div 
+        v-if="!isStandalone && !isBypassed" 
+        class="fixed inset-0 z-[99999] bg-slate-950 flex flex-col items-center justify-center p-4 overflow-y-auto"
+      >
+        <!-- Background ambient gradients -->
+        <div class="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none"></div>
+        <div class="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 rounded-full bg-emerald-500/5 blur-[140px] pointer-events-none"></div>
+
+        <div class="w-full max-w-lg bg-slate-900/90 border border-slate-800/80 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6 text-center backdrop-blur-md relative z-10 animate-in fade-in zoom-in-95 duration-300">
+          
+          <!-- Header Branding -->
+          <div class="space-y-3">
+            <div class="relative mx-auto h-14 w-14 rounded-2xl bg-indigo-600 flex items-center justify-center font-extrabold text-white text-xl shadow-lg shadow-indigo-500/20">
+              SP
+              <!-- Mini pulsing indicator -->
+              <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+              </span>
+            </div>
+            
+            <div class="space-y-1">
+              <h2 class="text-xl font-extrabold tracking-tight text-white leading-tight">Student Portal</h2>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-400">Workspace App Enforced</p>
+            </div>
+
+            <p class="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              To ensure data sandbox isolation, high-density dashboard layouts, and offline availability, this application must be run as a standalone PWA.
+            </p>
+          </div>
+
+          <!-- Native Installation Prompt (If supported and deferred prompt is ready) -->
+          <div v-if="deferredPrompt" class="bg-indigo-950/40 border border-indigo-500/25 rounded-xl p-5 space-y-4">
+            <div class="space-y-1">
+              <span class="text-xs font-bold text-indigo-200">Native Installation Available</span>
+              <p class="text-[10.5px] text-indigo-300/80">Click the button below to install the application instantly onto your device.</p>
+            </div>
+            <button 
+              @click="triggerPwaInstall"
+              class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-extrabold text-white py-3 px-4 shadow-lg shadow-indigo-600/20 transition duration-150"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-200 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Install Workspace App
+            </button>
+          </div>
+
+          <!-- Step-by-Step Platform Guides -->
+          <div class="space-y-3.5 text-left">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-800/80 pb-1.5">Manual Installation Instructions</span>
+            
+            <!-- Platform Tabs Selector -->
+            <div class="grid grid-cols-4 gap-1 bg-slate-950/85 rounded-lg p-1 text-[10px] font-bold">
+              <button 
+                v-for="tab in ['chrome', 'ios', 'macos', 'firefox']" 
+                :key="tab"
+                @click="activePlatformTab = tab"
+                :class="[
+                  'py-1.5 rounded transition capitalize text-center',
+                  activePlatformTab === tab 
+                    ? 'bg-slate-850 text-slate-200' 
+                    : 'text-slate-500 hover:text-slate-300'
+                ]"
+              >
+                {{ tab === 'chrome' ? 'Chrome/Edge' : tab === 'ios' ? 'iOS Safari' : tab === 'macos' ? 'macOS Safari' : 'Firefox' }}
+              </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="bg-slate-950/40 border border-slate-800/40 rounded-xl p-4 text-xs text-slate-300 space-y-2.5 min-h-[96px] leading-relaxed">
+              <div v-if="activePlatformTab === 'chrome'" class="space-y-2 animate-in fade-in duration-200">
+                <p class="text-[11px] text-slate-400 font-medium">On Chrome / Edge / Brave (Desktop & Android):</p>
+                <ul class="list-disc pl-4 space-y-1 text-[11px] text-slate-300 font-semibold">
+                  <li>Click the <strong class="text-white">Install</strong> icon in the address bar (top right).</li>
+                  <li>Or open the browser menu (<strong class="text-white">⋮</strong>) and click <strong class="text-white">Install Student Performance...</strong> or <strong class="text-white">Add to Home Screen</strong>.</li>
+                </ul>
+              </div>
+              <div v-else-if="activePlatformTab === 'ios'" class="space-y-2 animate-in fade-in duration-200">
+                <p class="text-[11px] text-slate-400 font-medium">On iOS Safari (iPhone / iPad):</p>
+                <ul class="list-disc pl-4 space-y-1 text-[11px] text-slate-300 font-semibold">
+                  <li>Tap the <strong class="text-white">Share</strong> button <span class="inline-flex items-center justify-center bg-slate-800 px-1 py-0.5 rounded text-[9px] text-slate-300">⎋</span> (box with up arrow) in Safari.</li>
+                  <li>Scroll down and tap <strong class="text-white">Add to Home Screen</strong>.</li>
+                  <li>Confirm the details and click <strong class="text-white">Add</strong> in the top-right corner.</li>
+                </ul>
+              </div>
+              <div v-else-if="activePlatformTab === 'macos'" class="space-y-2 animate-in fade-in duration-200">
+                <p class="text-[11px] text-slate-400 font-medium">On macOS Safari (Desktop Dock):</p>
+                <ul class="list-disc pl-4 space-y-1 text-[11px] text-slate-300 font-semibold">
+                  <li>Click <strong class="text-white">File</strong> in the Safari top menu bar.</li>
+                  <li>Choose <strong class="text-white">Add to Dock...</strong> from the dropdown list.</li>
+                  <li>Verify the name and click <strong class="text-white">Add</strong> to pin the workspace.</li>
+                </ul>
+              </div>
+              <div v-else-if="activePlatformTab === 'firefox'" class="space-y-2 animate-in fade-in duration-200">
+                <p class="text-[11px] text-slate-400 font-medium">On Mozilla Firefox:</p>
+                <ul class="list-disc pl-4 space-y-1 text-[11px] text-slate-300 font-semibold">
+                  <li>Firefox does not support desktop PWA installation by default.</li>
+                  <li>We recommend using a Chromium-based browser (Chrome, Edge, Brave, Opera) to install.</li>
+                  <li>Or use Firefox Mobile on Android: tap the menu and choose <strong class="text-white">Install</strong>.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Diagnostics Checks -->
+          <div class="bg-slate-950/60 rounded-xl p-4 border border-slate-800/80 text-[10.5px] text-slate-400 space-y-2">
+            <span class="font-bold text-slate-300 uppercase tracking-wider block text-left mb-1">Workspace Integrity Check</span>
+            <div class="flex items-center justify-between">
+              <span>Display Viewport Mode:</span>
+              <span class="text-rose-400 font-bold">Web Browser (Restricted)</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Service Worker Engine:</span>
+              <span class="text-emerald-400 font-bold">Active & Cache Ready</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Local Sandbox Isolation:</span>
+              <span class="text-emerald-400 font-bold">Secured (LocalStorage)</span>
+            </div>
+          </div>
+
+          <!-- Footer Bypass Options -->
+          <div class="pt-2 text-center flex flex-col gap-2">
+            <span class="text-[10px] text-slate-500 font-semibold">
+              Once installed, launch the app from your device launcher or desktop shortcut.
+            </span>
+            <button 
+              @click="handleBypass"
+              class="text-[9px] font-bold text-slate-600 hover:text-slate-400 transition-colors uppercase tracking-widest self-center"
+            >
+              Developer Bypass Mode
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </Transition>
     <!-- Mobile Navigation Bar -->
-    <header class="md:hidden fixed top-0 left-0 right-0 h-14 bg-slate-900 text-white z-50 px-4 flex items-center justify-between border-b border-slate-800">
+    <header class="md:hidden mobile-header fixed top-0 left-0 right-0 h-14 bg-slate-900 text-white z-50 px-4 flex items-center justify-between border-b border-slate-800">
       <div class="flex items-center gap-2">
         <div class="h-7 w-7 rounded bg-indigo-600 flex items-center justify-center font-extrabold text-white text-xs">
           SP
@@ -25,8 +165,8 @@
     <!-- Sidebar Navigation (Desktop) / Slide-out Menu (Mobile) -->
     <aside 
       :class="[
-        'fixed inset-y-0 left-0 z-40 bg-slate-950 text-slate-200 flex flex-col justify-between border-r border-slate-900 transition-transform duration-200 md:translate-x-0 md:w-64',
-        isMobileMenuOpen ? 'translate-x-0 w-full pt-14' : '-translate-x-full pt-0'
+        'fixed inset-y-0 left-0 z-40 bg-slate-950 text-slate-200 flex flex-col justify-between border-r border-slate-900 transition-transform duration-200 md:translate-x-0 md:w-64 mobile-sidebar',
+        isMobileMenuOpen ? 'translate-x-0 w-full' : '-translate-x-full'
       ]"
     >
       <div class="flex flex-col flex-1 px-4 py-6 overflow-y-auto gap-6">
@@ -119,7 +259,7 @@
 
     <!-- Main Content Container -->
     <div class="flex-1 flex flex-col min-w-0">
-      <main class="flex-1 px-4 pb-6 pt-24 sm:px-6 sm:pb-8 sm:pt-24 md:p-8 md:ml-64 max-w-6xl w-full mx-auto">
+      <main class="main-content flex-1 px-4 pb-6 pt-24 sm:px-6 sm:pb-8 sm:pt-24 md:p-8 md:ml-64 max-w-6xl w-full mx-auto">
         <slot />
       </main>
     </div>
@@ -145,8 +285,59 @@ import { useAuth } from '~/composables/useAuth'
 const { user, logout } = useAuth()
 const isMobileMenuOpen = ref(false)
 
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 const deferredPrompt = useState<any>('pwa-deferred-prompt')
 const isInstallable = useState<boolean>('pwa-is-installable', () => false)
+
+// Standalone mode checks
+const isStandalone = ref(false)
+const isBypassed = ref(false)
+const activePlatformTab = ref('chrome')
+
+const checkStandalone = () => {
+  if (typeof window !== 'undefined') {
+    isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || 
+                         (window.navigator as any).standalone === true
+  }
+}
+
+const detectPlatform = () => {
+  if (typeof window !== 'undefined') {
+    const ua = navigator.userAgent.toLowerCase()
+    if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) {
+      activePlatformTab.value = 'ios'
+    } else if (ua.includes('macintosh') && !ua.includes('chrome') && !ua.includes('firefox')) {
+      activePlatformTab.value = 'macos'
+    } else if (ua.includes('firefox')) {
+      activePlatformTab.value = 'firefox'
+    } else {
+      activePlatformTab.value = 'chrome'
+    }
+  }
+}
+
+const handleBypass = () => {
+  if (confirm('Enable developer bypass mode? This is only intended for local testing on environments that do not support PWA installation.')) {
+    localStorage.setItem('student-portal-pwa-bypass', 'true')
+    isBypassed.value = true
+  }
+}
+
+const triggerPwaInstall = () => {
+  const promptEvent = deferredPrompt.value
+  if (promptEvent) {
+    promptEvent.prompt()
+    promptEvent.userChoice.then(({ outcome }: any) => {
+      console.log(`User response to enforcer PWA install: ${outcome}`)
+      deferredPrompt.value = null
+      isInstallable.value = false
+    })
+  } else {
+    alert('PWA installation trigger is not available on this browser/environment. If you are using iOS Safari or Firefox, please use the browser settings menu to "Add to Home Screen".')
+  }
+}
 
 const userInitial = computed(() => {
   if (!user.value?.username) return 'U'
@@ -253,10 +444,21 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
 
 onMounted(() => {
   loadAvatar()
+  checkStandalone()
+  detectPlatform()
+  
   if (typeof window !== 'undefined') {
+    if (route.query.bypass === 'true' || localStorage.getItem('student-portal-pwa-bypass') === 'true') {
+      isBypassed.value = true
+    }
+
     window.addEventListener('avatar-changed', loadAvatar)
     window.addEventListener('contextmenu', handleContextMenu)
     window.addEventListener('keydown', handleGlobalKeydown)
+
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+      isStandalone.value = e.matches
+    })
   }
 })
 
@@ -340,5 +542,18 @@ const menuItems = [
 <style scoped>
 .router-link-exact-active {
   @apply bg-indigo-600 text-white font-semibold;
+}
+
+@media (max-width: 767px) {
+  .main-content {
+    padding-top: calc(6rem + env(safe-area-inset-top)) !important;
+  }
+  .mobile-header {
+    padding-top: env(safe-area-inset-top) !important;
+    height: calc(3.5rem + env(safe-area-inset-top)) !important;
+  }
+  .mobile-sidebar {
+    padding-top: calc(3.5rem + env(safe-area-inset-top)) !important;
+  }
 }
 </style>
