@@ -4,13 +4,24 @@
     <Transition name="fade">
       <div 
         v-if="!isStandalone && !isBypassed" 
-        class="fixed inset-0 z-[99999] bg-slate-950 flex flex-col items-center justify-center p-4 overflow-y-auto"
+        class="fixed inset-0 z-[99999] bg-slate-950 flex flex-col items-center p-4 overflow-y-auto"
       >
         <!-- Background ambient gradients -->
         <div class="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none"></div>
         <div class="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 rounded-full bg-emerald-500/5 blur-[140px] pointer-events-none"></div>
 
-        <div class="w-full max-w-lg bg-slate-900/90 border border-slate-800/80 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6 text-center backdrop-blur-md relative z-10 animate-in fade-in zoom-in-95 duration-300">
+        <div class="w-full max-w-lg my-auto bg-slate-900/90 border border-slate-800/80 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6 text-center backdrop-blur-md relative z-10 animate-in fade-in zoom-in-95 duration-300">
+          
+          <!-- Close Button -->
+          <button 
+            @click="dismissOverlay" 
+            class="absolute top-4 right-4 text-slate-500 hover:text-slate-300 focus:outline-none p-1.5 hover:bg-slate-800/60 rounded-full transition cursor-pointer"
+            aria-label="Dismiss"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
           
           <!-- Header Branding -->
           <div class="space-y-3">
@@ -122,6 +133,16 @@
               <span>Local Sandbox Isolation:</span>
               <span class="text-emerald-400 font-bold">Secured (LocalStorage)</span>
             </div>
+          </div>
+
+          <!-- Continue to web option -->
+          <div class="pt-2 border-t border-slate-800/60 mt-4">
+            <button 
+              @click="dismissOverlay"
+              class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-950/40 hover:bg-slate-950 active:scale-95 text-xs font-bold text-slate-400 hover:text-slate-200 py-2.5 px-4 transition duration-150 cursor-pointer"
+            >
+              Dismiss & Continue to Web Portal
+            </button>
           </div>
 
           <!-- Footer Bypass Options -->
@@ -323,6 +344,11 @@ const handleBypass = () => {
     localStorage.setItem('student-portal-pwa-bypass', 'true')
     isBypassed.value = true
   }
+}
+
+const dismissOverlay = () => {
+  localStorage.setItem('student-portal-pwa-bypass', 'true')
+  isBypassed.value = true
 }
 
 const triggerPwaInstall = () => {
